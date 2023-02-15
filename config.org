@@ -1,0 +1,276 @@
+#+title: Joseph's Doom Emacs Config
+#+startup: show2levels
+
+* Init.el
+I removed the options that I don't use to shorten the whole block. The rest of the options can be found in the documentation.
+#+begin_src emacs-lisp :tangle init.el
+(doom! :input
+       :completion
+       company           ; the ultimate code completion backend
+       (ivy +fuzzy +icons)
+       vertico           ; the search engine of the future
+
+       :ui
+       doom              ; what makes DOOM look the way it does
+       doom-dashboard    ; a nifty splash screen for Emacs
+       hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
+       modeline          ; snazzy, Atom-inspired modeline, plus API
+       ophints           ; highlight the region an operation acts on
+       (popup +defaults)   ; tame sudden yet inevitable temporary windows
+       treemacs          ; a project drawer, like neotree but cooler
+       unicode           ; extended unicode support for various languages
+       (vc-gutter +pretty) ; vcs diff in the fringe
+       vi-tilde-fringe   ; fringe tildes to mark beyond EOB
+       workspaces        ; tab emulation, persistence & separate workspaces
+
+       :editor
+       (evil +everywhere); come to the dark side, we have cookies
+       file-templates    ; auto-snippets for empty files
+       fold              ; (nigh) universal code folding
+       (format +onsave)  ; automated prettiness
+       snippets          ; my elves. They type so I don't have to
+       word-wrap         ; soft wrapping with language-aware indent
+
+       :emacs
+       dired             ; making dired pretty [functional]
+       electric          ; smarter, keyword-based electric-indent
+       ibuffer         ; interactive buffer management
+       undo              ; persistent, smarter undo for your inevitable mistakes
+       vc                ; version-control and Emacs, sitting in a tree
+
+       :term
+       vterm             ; the best terminal emulation in Emacs
+
+       :checkers
+       syntax              ; tasing you for every semicolon you forget
+       (spell +aspell) ; tasing you for misspelling mispelling
+
+       :tools
+       (eval +overlay)     ; run code, run (also, repls)
+       lookup              ; navigate your code and its documentation
+       lsp               ; M-x vscode
+       magit             ; a git porcelain for Emacs
+       rgb               ; creating color strings
+
+       :lang
+       emacs-lisp        ; drown in parentheses
+       (go +lsp)
+       ;;javascript        ; all(hope(abandon(ye(who(enter(here))))))
+       ledger            ; be audit you can be
+       lua               ; one-based indices? one-based indices
+       markdown          ; writing docs for people to ignore
+       nix               ; I hereby declare "nix geht mehr!"
+       (php +lsp)
+       elm
+       haskell
+       (org +roam2 +pretty +present)               ; organize your plain life in plain text
+       python            ; beautiful is better than ugly
+       ;;(rust +lsp)       ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
+       json
+       (sh +fish)                ; she sells {ba,z,fi}sh shells on the C xor
+       (web +lsp)               ; the tubes
+
+       :email
+       ;;(mu4e +org +gmail)
+
+       :app
+       calendar
+
+       :config
+       literate
+       (default +bindings +smartparens))
+
+#+end_src
+* Packages.el
+#+begin_src emacs-lisp :tangle packages.el
+;;(package! org-modern)
+(package! org-roam
+  :recipe (:host github :repo "org-roam/org-roam"
+           :files (:defaults "extensions/*")))
+
+(when (package! org-roam-ui)
+  (package! org-roam))
+
+(package! ob-ledger :recipe (:local-repo "lisp/ob-ledger"))
+(package! org-super-agenda)
+(package! olivetti)
+(package! mw-thesaurus)
+(package! org-wc)
+(package! ox-reveal)
+(package! htmlize)
+#+end_src
+* Configurations
+** User Info
+#+begin_src emacs-lisp
+(setq user-full-name "Joseph Raub"
+      user-mail-address "josephraub98@gmail.com")
+#+end_src
+** UI
+*** Nord Palette
+Polar Night
+00 #2e3440
+01 #3b4252
+02 #434c5e
+03 #4c566a
+
+Snow Storm
+04 #d8dee9
+05 #e5e9f0
+06 #eceff4
+
+Frost
+07 #8fbcbb
+0C #88c0d0
+0D #81a1c1
+0F #5e81ac
+
+Aurora
+08 #bf616a
+09 #d08770
+0A #ebcb8b
+0B #a3be9c
+0E #b48ead
+*** Theme
+#+begin_src emacs-lisp
+;;(setq fancy-splash-image "~/.doom.d/doom-emacs-bw-light.svg")
+(setq doom-theme 'doom-nord-aurora)
+(setq display-line-numbers-type `relative)
+#+end_src
+
+*** Fonts
+#+begin_src emacs-lisp
+(setq doom-font (font-spec :family "SauceCodePro Nerd Font" :size 12 :weight 'regular))
+#+end_src
+
+*** Org-Modern
+#+begin_src emacs-lisp
+;;(add-hook 'org-mode-hook #'org-modern-mode)
+#+end_src
+** Keybindings
+#+begin_src emacs-lisp
+(map! :leader
+      :prefix-map ("o" . "open")
+      (:desc "Magit" "g" #'magit
+       :desc "Treemacs" "s" #'treemacs
+       :desc "Calendar" "c" #'my-calendar)
+      :prefix-map ("j" . "jump")
+      (:desc "Counsel Outline" "c" #'counsel-outline)
+)
+#+end_src
+** Org
+#+begin_src emacs-lisp :results silent
+(use-package org
+  :ensure t
+  :config
+  (setq org-directory "~/org")
+  (setq org-log-into-drawer t)
+  (setq org-latex-logfiles-extensions (quote ("lof" "lot" "tex~" "aux" "idx" "log" "out" "toc" "nav" "snm" "vrb" "dvi" "fdb_latexmk" "blg" "brf" "fls" "entoc" "ps" "spl" "bbl")))
+  (setq org-todo-keywords
+      '((sequence "TODO(t)" "LESSON(l)" "TO-STUDY(s)" "TO-READ(r)" "IN-PROGRESS(i!)" "PROJ(P)" "IDEA(I)" "|" "DONE(d!)" "CANCELLED(c@)" )))
+)
+#+end_src
+** Org-Clock
+#+begin_src emacs-lisp
+(after! org-clock
+  (setq org-clock-persist t)
+  (org-clock-persistence-insinuate))
+#+end_src
+** Org-GTD
+#+begin_src emacs-lisp
+;; (use-package! org-gtd
+;;   :after org
+;;   :config
+;;   (setq org-gtd-directory org-directory . "/gtd/")
+;;   (setq org-agenda-property-list '("DELEGATED_TO"))
+;;   (setq org-agenda-property-position 'next-line)
+;;   (setq org-edna-use-inheritance t)
+;;   (org-edna-load)
+;;   :bind
+
+;; )
+#+end_src
+** Org-Roam
+#+begin_src emacs-lisp
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "/home/joseph/org/roam")))
+#+end_src
+** Org-Super-Agenda
+#+begin_src emacs-lisp :results silent
+(use-package! org-super-agenda
+  :after org-agenda
+  :init
+  (custom-set-variables
+   '(org-agenda-files (list "~/org/agenda")))
+  (setq org-agenda-start-day nil
+        org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-deadline-if-done t
+        org-agenda-include-deadlines t
+        org-agenda-block-separator nil
+        org-agenda-compact-blocks t
+        org-agenda-span 1
+        org-agenda-start-on-weekday nil)
+  (setq org-agenda-custom-commands
+        '(("c" "Cleaning View"
+           ((alltodo "" ((org-agenda-overriding-header "")
+                        (org-super-agenda-groups
+                         '((:name "This week's cleaning")
+                           (:discard (:not (:and (:category "cleaning" :tag "joseph"))))
+                           (:auto-parent t)
+
+                           ))))
+            ))
+          ("s" "Super View"
+         ((agenda "" ((org-agenda-overriding-header "")
+                    (org-super-agenda-groups
+                     '((:name "Today"
+                        :time-grid t
+                        :date today
+                        :order 0)
+                       ))))
+          (alltodo "" ((org-agenda-overriding-header "")
+                       (org-super-agenda-groups
+                        '(
+                          (:name "Overdue"
+                                 :deadline past
+                                 :order 1)
+                          (:name "In Progress"
+                                 :todo "IN_PROGRESS"
+                                 :order 2)
+                          (:name "Work"
+                                 :category "childrens_church")
+                          (:name "To Study"
+                                 :todo "TO-STUDY"
+                                 :category "ologies"
+                                 :order 3)
+                          (:name "To Read"
+                                 :and (:todo ("TO-READ" "IN-PROGRESS") :category "books")
+                                 :tag "books"
+                                 :order 4)
+
+                          ))))))
+  ))
+  :config
+  (org-super-agenda-mode))
+#+end_src
+
+
+** Org-reveal
+#+begin_src emacs-lisp
+
+#+end_src
+** Calfw
+#+begin_src emacs-lisp
+(defun my-calendar ()
+  (interactive)
+  (cfw:open-calendar-buffer
+   :contents-sources
+   (list
+    (cfw:org-create-source "WhiteSmoke")
+    (cfw:ical-create-source "Google" "https://calendar.google.com/calendar/ical/josephraub98%40gmail.com/private-8a11016b26d257b08a7df99b3413a6a1/basic.ics" "Wheat")
+    (cfw:ical-create-source "Family" "https://calendar.google.com/calendar/ical/9ibfbq446q1jahnid8npkjfn10%40group.calendar.google.com/private-cea683758b9acfd2b689309f9e48f31e/basic.ics" "Medium Slate Blue")
+    (cfw:ical-create-source "Church" "https://calendar.google.com/calendar/ical/mrvsacc07hrfc4it0vnouvpffk%40group.calendar.google.com/private-5cf1d74203c478311461b8ffbb289ae9/basic.ics" "firebrick")
+    )))
+#+end_src
+** Mu4e
