@@ -23,10 +23,17 @@
   :config
   (setq org-directory "~/org")
   (setq org-log-into-drawer t)
-  (setq org-latex-logfiles-extensions (quote ("lof" "lot" "tex~" "aux" "idx" "log" "out" "toc" "nav" "snm" "vrb" "dvi" "fdb_latexmk" "blg" "brf" "fls" "entoc" "ps" "spl" "bbl")))
+  (setq org-latex-logfiles-extensions (quote ("lof" "lot" "tex" "aux" "idx" "log" "out" "toc" "nav" "snm" "vrb" "dvi" "fdb_latexmk" "blg" "brf" "fls" "entoc" "ps" "spl" "bbl")))
   (setq org-todo-keywords
       '((sequence "TODO(t)" "LESSON(l)" "TO-STUDY(s)" "TO-READ(r)" "IN-PROGRESS(i!)" "PROJ(P)" "IDEA(I)" "|" "DONE(d!)" "CANCELLED(c@)" )))
 )
+
+(defadvice org-export-output-file-name (before org-add-export-dir activate)
+  "Modifies org-export to place resulting files in a different folder"
+  (when (not pub-dir)
+    (setq pub-dir "exported-org-files")
+    (when (not (file-directory-p pub-dir))
+      (make-directory pub-dir))))
 
 (after! org-clock
   (setq org-clock-persist t)
